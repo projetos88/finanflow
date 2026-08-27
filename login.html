@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login | FinanFlow</title>
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="auth-page">
+
+    <div class="auth-container">
+
+        <div class="auth-brand">
+
+            <div class="auth-logo">
+                💰
+            </div>
+
+            <h1>FinanFlow</h1>
+
+            <p>
+                Seu dinheiro sob controle.
+            </p>
+
+        </div>
+
+
+        <div class="auth-card">
+
+            <div class="auth-header">
+
+                <h2>Bem-vindo de volta!</h2>
+
+                <p>
+                    Entre na sua conta para continuar.
+                </p>
+
+            </div>
+
+
+            <form id="loginForm">
+
+                <div class="auth-field">
+
+                    <label for="loginEmail">
+                        E-mail
+                    </label>
+
+                    <input
+                        type="email"
+                        id="loginEmail"
+                        placeholder="seuemail@email.com"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="auth-field">
+
+                    <label for="loginSenha">
+                        Senha
+                    </label>
+
+                    <input
+                        type="password"
+                        id="loginSenha"
+                        placeholder="Digite sua senha"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="auth-options">
+
+                    <label class="remember">
+
+                        <input
+                            type="checkbox"
+                            id="lembrarUsuario"
+                        >
+
+                        <span>
+                            Lembrar de mim
+                        </span>
+
+                    </label>
+
+
+                    <a href="#" onclick="recuperarSenha(event)">
+                        Esqueci minha senha
+                    </a>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="auth-button"
+                >
+                    Entrar
+                </button>
+
+            </form>
+
+
+            <div
+                id="loginMensagem"
+                class="auth-message"
+            ></div>
+
+
+            <div class="auth-divider">
+
+                <span>ou</span>
+
+            </div>
+
+
+            <div class="auth-register">
+
+                <p>
+                    Ainda não possui uma conta?
+                </p>
+
+                <a href="cadastro.html">
+                    Criar minha conta
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="auth-footer">
+
+            <span>
+                © 2026 FinanFlow
+            </span>
+
+            <span>
+                Controle financeiro inteligente
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+    const loginForm =
+        document.getElementById("loginForm");
+
+
+    loginForm.addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            const email =
+                document
+                    .getElementById("loginEmail")
+                    .value
+                    .trim();
+
+
+            const senha =
+                document
+                    .getElementById("loginSenha")
+                    .value;
+
+
+            const mensagem =
+                document
+                    .getElementById("loginMensagem");
+
+
+            // =====================================
+            // VALIDAÇÃO
+            // =====================================
+
+            if (!email || !senha) {
+
+                mensagem.textContent =
+                    "Preencha todos os campos.";
+
+                mensagem.className =
+                    "auth-message error";
+
+                return;
+
+            }
+
+
+            // =====================================
+            // LOGIN
+            // =====================================
+
+            try {
+
+                mensagem.textContent =
+                    "Entrando...";
+
+                mensagem.className =
+                    "auth-message success";
+
+
+                const resposta =
+                    await fetch(
+                     "http://localhost:3000/api/login",
+                        {
+
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify({
+
+                                    email:
+                                        email,
+
+                                    senha:
+                                        senha
+
+                                })
+
+                        }
+                    );
+
+
+                const resultado =
+                    await resposta.json();
+
+
+                // =====================================
+                // ERRO
+                // =====================================
+
+                if (!resposta.ok) {
+
+                    mensagem.textContent =
+                        resultado.mensagem ||
+                        "E-mail ou senha incorretos.";
+
+                    mensagem.className =
+                        "auth-message error";
+
+                    return;
+
+                }
+
+
+                // =====================================
+                // LOGIN REALIZADO
+                // =====================================
+
+                localStorage.setItem(
+                    "finanflow_usuario_logado",
+                    JSON.stringify(
+                        resultado.usuario
+                    )
+                );
+
+
+                mensagem.textContent =
+                    "Login realizado! Entrando...";
+
+                mensagem.className =
+                    "auth-message success";
+
+
+                setTimeout(() => {
+
+                    window.location.href =
+                        "index.html";
+
+                }, 700);
+
+
+            } catch (erro) {
+
+                console.error(
+                    "Erro ao realizar login:",
+                    erro
+                );
+
+
+                mensagem.textContent =
+                    "Não foi possível conectar ao servidor.";
+
+                mensagem.className =
+                    "auth-message error";
+
+            }
+
+        }
+    );
+
+
+    // =====================================
+    // RECUPERAÇÃO DE SENHA
+    // =====================================
+
+    function recuperarSenha(event) {
+
+        event.preventDefault();
+
+        alert(
+            "A recuperação de senha será adicionada em uma próxima etapa."
+        );
+
+    }
+
+</script>
+
+</body>
+
+</html>

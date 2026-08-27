@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Planos | FinanFlow</title>
+
+    <link rel="stylesheet" href="styles.css">
+
+</head>
+
+
+<body class="plans-page">
+
+    <div class="plans-container">
+
+        <div class="plans-header">
+
+            <div class="auth-logo">
+                💰
+            </div>
+
+            <h1>Escolha seu plano</h1>
+
+            <p>
+                Tenha controle completo das suas finanças.
+            </p>
+
+        </div>
+
+
+        <div class="plans-grid">
+
+
+            <!-- PLANO GRATUITO -->
+
+            <div class="plan-card">
+
+                <div class="plan-icon">
+                    🌱
+                </div>
+
+                <h2>Grátis</h2>
+
+                <p class="plan-description">
+                    Para começar a organizar sua vida financeira.
+                </p>
+
+                <div class="plan-price">
+
+                    <span>R$</span>
+
+                    <strong>0</strong>
+
+                    <small>/mês</small>
+
+                </div>
+
+
+                <ul class="plan-features">
+
+                    <li>✓ Dashboard financeiro</li>
+
+                    <li>✓ Controle de transações</li>
+
+                    <li>✓ Controle de mensalidades</li>
+
+                    <li>✓ Até 3 metas financeiras</li>
+
+                </ul>
+
+
+                <button
+                    class="plan-button secondary"
+                    onclick="selecionarPlano('gratuito')"
+                >
+                    Continuar grátis
+                </button>
+
+            </div>
+
+
+
+            <!-- PLANO PREMIUM -->
+
+            <div class="plan-card featured">
+
+                <div class="popular-badge">
+                    MAIS POPULAR
+                </div>
+
+                <div class="plan-icon">
+                    🚀
+                </div>
+
+                <h2>Premium</h2>
+
+                <p class="plan-description">
+                    Para quem quer ter controle financeiro completo.
+                </p>
+
+                <div class="plan-price">
+
+                    <span>R$</span>
+
+                    <strong>19,90</strong>
+
+                    <small>/mês</small>
+
+                </div>
+
+
+                <ul class="plan-features">
+
+                    <li>✓ Tudo do plano grátis</li>
+
+                    <li>✓ Metas ilimitadas</li>
+
+                    <li>✓ Relatórios financeiros</li>
+
+                    <li>✓ Análises avançadas</li>
+
+                    <li>✓ Recursos exclusivos</li>
+
+                </ul>
+
+
+                <button
+                    class="plan-button primary"
+                    onclick="selecionarPlano('premium')"
+                >
+                    Assinar Premium
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="plans-footer">
+
+            <a href="index.html">
+                ← Voltar para o FinanFlow
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        function selecionarPlano(plano) {
+
+            const usuario =
+                JSON.parse(
+                    localStorage.getItem(
+                        "finanflow_usuario_logado"
+                    )
+                );
+
+
+            if (!usuario) {
+
+                alert(
+                    "Faça login para escolher um plano."
+                );
+
+                window.location.href =
+                    "login.html";
+
+                return;
+
+            }
+
+
+            let assinatura = {
+
+                plano: plano,
+
+                status: "ativa",
+
+                dataInicio:
+                    new Date().toISOString(),
+
+                usuarioId:
+                    usuario.id
+
+            };
+
+
+            localStorage.setItem(
+
+                `finanflow_assinatura_${usuario.id}`,
+
+                JSON.stringify(
+                    assinatura
+                )
+
+            );
+
+
+            if (plano === "gratuito") {
+
+                alert(
+                    "Plano gratuito ativado!"
+                );
+
+            } else {
+
+                alert(
+                    "Plano Premium selecionado! O pagamento será conectado na próxima etapa."
+                );
+
+            }
+
+
+            window.location.href =
+                "index.html";
+
+        }
+
+    </script>
+
+</body>
+
+</html>

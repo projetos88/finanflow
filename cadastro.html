@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Cadastro | FinanFlow</title>
+
+    <link rel="stylesheet" href="styles.css">
+
+</head>
+
+
+<body class="auth-page">
+
+    <div class="auth-container">
+
+        <div class="auth-brand">
+
+            <div class="auth-logo">
+                💰
+            </div>
+
+            <h1>FinanFlow</h1>
+
+            <p>
+                Comece a organizar sua vida financeira.
+            </p>
+
+        </div>
+
+
+        <div class="auth-card">
+
+            <div class="auth-header">
+
+                <h2>Criar sua conta</h2>
+
+                <p>
+                    Preencha seus dados para começar.
+                </p>
+
+            </div>
+
+
+            <form id="cadastroForm">
+
+                <div class="auth-field">
+
+                    <label for="nomeCadastro">
+                        Nome
+                    </label>
+
+                    <input
+                        type="text"
+                        id="nomeCadastro"
+                        placeholder="Seu nome"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="auth-field">
+
+                    <label for="emailCadastro">
+                        E-mail
+                    </label>
+
+                    <input
+                        type="email"
+                        id="emailCadastro"
+                        placeholder="seuemail@email.com"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="auth-field">
+
+                    <label for="senhaCadastro">
+                        Senha
+                    </label>
+
+                    <input
+                        type="password"
+                        id="senhaCadastro"
+                        placeholder="Crie uma senha"
+                        minlength="8"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="auth-field">
+
+                    <label for="confirmarSenha">
+                        Confirmar senha
+                    </label>
+
+                    <input
+                        type="password"
+                        id="confirmarSenha"
+                        placeholder="Digite a senha novamente"
+                        minlength="8"
+                        required
+                    >
+
+                </div>
+
+
+                <label class="terms">
+
+                    <input
+                        type="checkbox"
+                        id="aceitarTermos"
+                        required
+                    >
+
+                    <span>
+                        Concordo com os termos de uso e política de privacidade.
+                    </span>
+
+                </label>
+
+
+                <button
+                    type="submit"
+                    class="auth-button"
+                >
+                    Criar minha conta
+                </button>
+
+            </form>
+
+
+            <div
+                id="cadastroMensagem"
+                class="auth-message"
+            ></div>
+
+
+            <div class="auth-divider">
+
+                <span>ou</span>
+
+            </div>
+
+
+            <div class="auth-register">
+
+                <p>
+                    Já possui uma conta?
+                </p>
+
+                <a href="login.html">
+                    Entrar na minha conta
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="auth-footer">
+
+            <span>
+                © 2026 FinanFlow
+            </span>
+
+            <span>
+                Controle financeiro inteligente
+            </span>
+
+        </div>
+
+    </div>
+
+
+   <script>
+
+    const cadastroForm =
+        document.getElementById("cadastroForm");
+
+
+    cadastroForm.addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            const nome =
+                document
+                    .getElementById("nomeCadastro")
+                    .value
+                    .trim();
+
+
+            const email =
+                document
+                    .getElementById("emailCadastro")
+                    .value
+                    .trim();
+
+
+            const senha =
+                document
+                    .getElementById("senhaCadastro")
+                    .value;
+
+
+            const confirmarSenha =
+                document
+                    .getElementById("confirmarSenha")
+                    .value;
+
+
+            // =====================================
+            // VALIDAÇÕES
+            // =====================================
+
+            if (senha.length < 8) {
+
+                mostrarMensagem(
+                    "A senha precisa ter pelo menos 8 caracteres.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            if (senha !== confirmarSenha) {
+
+                mostrarMensagem(
+                    "As senhas não são iguais.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            // =====================================
+            // ENVIA PARA O BACKEND
+            // =====================================
+
+           try {
+
+                mostrarMensagem(
+                    "Criando sua conta...",
+                    "success"
+                );
+
+                const resposta = await fetch(
+                    "http://localhost:3000/api/cadastro",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            nome: nome,
+                            email: email,
+                            senha: senha
+                        })
+                    }
+                );
+
+                const resultado = await resposta.json();
+
+
+                // =====================================
+                // ERRO
+                // =====================================
+
+                if (!resposta.ok) {
+
+                    mostrarMensagem(
+                        resultado.mensagem ||
+                        "Não foi possível criar sua conta.",
+                        "error"
+                    );
+
+                    return;
+
+                }
+
+
+                // =====================================
+                // SUCESSO
+                // =====================================
+
+                mostrarMensagem(
+                    "Conta criada com sucesso! Redirecionando...",
+                    "success"
+                );
+
+
+                // Limpa os campos
+
+                cadastroForm.reset();
+
+
+                // Vai para o login
+
+                setTimeout(() => {
+
+                    window.location.href =
+                        "login.html";
+
+                }, 1200);
+
+
+            } catch (erro) {
+
+                console.error(
+                    "Erro ao conectar ao servidor:",
+                    erro
+                );
+
+
+                mostrarMensagem(
+                    "Não foi possível conectar ao servidor. Verifique se o backend está funcionando.",
+                    "error"
+                );
+
+            }
+
+        }
+    );
+
+
+    // =====================================
+    // MENSAGEM
+    // =====================================
+
+    function mostrarMensagem(
+        texto,
+        tipo
+    ) {
+
+        const mensagem =
+            document.getElementById(
+                "cadastroMensagem"
+            );
+
+
+        mensagem.textContent =
+            texto;
+
+
+        mensagem.className =
+            "auth-message " + tipo;
+
+    }
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinanFlow - Controle Financeiro</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="app">
+
+    <aside class="sidebar">
+        <div class="logo">
+            <span>💰</span>
+            <h2>FinanFlow</h2>
+        </div>
+
+        <nav>
+            <button class="menu-btn active" data-section="dashboard">📊 Dashboard</button>
+            <button class="menu-btn" data-section="transacoes">💳 Transações</button>
+            <button class="menu-btn" data-section="mensalidades">📅 Mensalidades</button>
+            <button class="menu-btn" data-section="metas">🎯 Metas</button>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <p>FinanFlow</p>
+            <small>Seu dinheiro sob controle.</small>
+        </div>
+    </aside>
+
+    <main class="main">
+
+        <header class="topbar">
+            <div>
+                <h1 id="pageTitle">Dashboard</h1>
+                <p id="pageSubtitle">Visão geral das suas finanças</p>
+            </div>
+            
+            <div class="user-info">
+    <span>Olá, <strong class="usuario-nome">Usuário</strong> 👋</span>
+
+    <button onclick="sairDaConta()" class="logout-btn">
+        Sair
+    </button>
+</div>
+
+            <button class="add-main-btn" onclick="abrirModalTransacao()">
+                + Nova transação
+            </button>
+        </header>
+
+        <!-- DASHBOARD -->
+        <section id="dashboard" class="section active">
+
+            <div class="cards">
+
+                <!-- =====================================
+     ASSINATURA
+===================================== -->
+
+<div class="panel subscription-panel">
+
+    <div class="panel-header">
+
+        <div>
+
+            <h3>Minha assinatura</h3>
+
+            <p class="subscription-subtitle">
+                Gerencie seu plano do FinanFlow.
+            </p>
+
+        </div>
+
+        <span
+            id="statusAssinatura"
+            class="subscription-status"
+        >
+            Ativo
+        </span>
+
+    </div>
+
+
+    <div class="subscription-content">
+
+        <div class="subscription-plan">
+
+            <div class="subscription-icon">
+                🚀
+            </div>
+
+            <div>
+
+                <span>Plano atual</span>
+
+                <strong id="planoAtual">
+                    Premium
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="subscription-info">
+
+            <div>
+
+                <span>Valor</span>
+
+                <strong id="valorPlano">
+                    R$ 19,90/mês
+                </strong>
+
+            </div>
+
+
+            <div>
+
+                <span>Início</span>
+
+                <strong id="inicioPlano">
+                    --
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <button
+            class="subscription-button"
+            onclick="abrirPlanos()"
+        >
+            Gerenciar plano
+        </button>
+
+    </div>
+
+</div>
+
+                <div class="card">
+                    <div class="card-icon">💰</div>
+                    <div>
+                        <span>Saldo atual</span>
+                        <strong id="saldo">R$ 0,00</strong>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon green">📈</div>
+                    <div>
+                        <span>Entradas</span>
+                        <strong id="entradas">R$ 0,00</strong>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon red">📉</div>
+                    <div>
+                        <span>Despesas</span>
+                        <strong id="despesas">R$ 0,00</strong>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon blue">📅</div>
+                    <div>
+                        <span>Mensalidades</span>
+                        <strong id="totalMensalidades">R$ 0,00</strong>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="dashboard-grid">
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Resumo financeiro</h3>
+                    </div>
+                    <canvas id="graficoFinanceiro"></canvas>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Despesas por categoria</h3>
+                    </div>
+                    <canvas id="graficoCategorias"></canvas>
+                </div>
+
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h3>Últimas transações</h3>
+                    <button onclick="mostrarSecao('transacoes')">Ver todas</button>
+                </div>
+
+                <div id="ultimasTransacoes" class="transaction-list">
+                    <p class="empty">Nenhuma transação cadastrada.</p>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- TRANSAÇÕES -->
+        <section id="transacoes" class="section">
+
+            <div class="section-actions">
+                <button class="primary-btn" onclick="abrirModalTransacao()">
+                    + Adicionar transação
+                </button>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h3>Suas transações</h3>
+
+                    <select id="filtroTipo" onchange="renderizarTransacoes()">
+                        <option value="todos">Todas</option>
+                        <option value="entrada">Entradas</option>
+                        <option value="despesa">Despesas</option>
+                    </select>
+                </div>
+
+                <div id="listaTransacoes" class="transaction-list">
+                </div>
+            </div>
+
+        </section>
+
+        <!-- MENSALIDADES -->
+        <section id="mensalidades" class="section">
+
+            <div class="monthly-header">
+                <div>
+                    <h2>Mensalidades e contas recorrentes</h2>
+                    <p>Controle suas contas fixas todos os meses.</p>
+                </div>
+
+                <button class="primary-btn" onclick="abrirModalMensalidade()">
+                    + Nova mensalidade
+                </button>
+            </div>
+
+            <div class="monthly-cards">
+
+                <div class="monthly-summary">
+                    <span>Total mensal</span>
+                    <strong id="mensalTotal">R$ 0,00</strong>
+                </div>
+
+                <div class="monthly-summary">
+                    <span>Pagas</span>
+                    <strong id="mensalPagas">R$ 0,00</strong>
+                </div>
+
+                <div class="monthly-summary">
+                    <span>Pendentes</span>
+                    <strong id="mensalPendentes">R$ 0,00</strong>
+                </div>
+
+                <div class="monthly-summary">
+                    <span>Atrasadas</span>
+                    <strong id="mensalAtrasadas">0</strong>
+                </div>
+
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h3>Minhas mensalidades</h3>
+                </div>
+
+                <div id="listaMensalidades" class="monthly-list">
+                </div>
+            </div>
+
+        </section>
+
+        <!-- METAS -->
+        <section id="metas" class="section">
+
+            <div class="monthly-header">
+                <div>
+                    <h2>Metas financeiras</h2>
+                    <p>Defina objetivos e acompanhe seu progresso.</p>
+                </div>
+
+                <button class="primary-btn" onclick="abrirModalMeta()">
+                    + Nova meta
+                </button>
+            </div>
+
+            <div id="listaMetas" class="goals-grid">
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- MODAL TRANSAÇÃO -->
+<div id="modalTransacao" class="modal">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h2>Nova transação</h2>
+            <button onclick="fecharModal('modalTransacao')">×</button>
+        </div>
+
+        <form id="formTransacao">
+
+            <label>Tipo</label>
+            <select id="tipoTransacao" required>
+                <option value="entrada">Entrada</option>
+                <option value="despesa">Despesa</option>
+            </select>
+
+            <label>Descrição</label>
+            <input type="text" id="descricaoTransacao" placeholder="Ex: Salário" required>
+
+            <label>Valor</label>
+            <input type="number" id="valorTransacao" placeholder="0,00" step="0.01" min="0" required>
+
+            <label>Categoria</label>
+            <select id="categoriaTransacao">
+                <option>Salário</option>
+                <option>Alimentação</option>
+                <option>Moradia</option>
+                <option>Transporte</option>
+                <option>Saúde</option>
+                <option>Lazer</option>
+                <option>Educação</option>
+                <option>Assinaturas</option>
+                <option>Outros</option>
+            </select>
+
+            <label>Data</label>
+            <input type="date" id="dataTransacao" required>
+
+            <button type="submit" class="primary-btn full">
+                Salvar transação
+            </button>
+
+        </form>
+
+    </div>
+</div>
+
+
+<!-- MODAL MENSALIDADE -->
+<div id="modalMensalidade" class="modal">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h2>Nova mensalidade</h2>
+            <button onclick="fecharModal('modalMensalidade')">×</button>
+        </div>
+
+        <form id="formMensalidade">
+
+            <label>Nome da conta</label>
+            <input type="text" id="nomeMensalidade" placeholder="Ex: Netflix" required>
+
+            <label>Valor mensal</label>
+            <input type="number" id="valorMensalidade" placeholder="0,00" step="0.01" min="0" required>
+
+            <label>Dia do vencimento</label>
+            <input type="number" id="diaMensalidade" min="1" max="31" placeholder="Ex: 10" required>
+
+            <label>Categoria</label>
+            <select id="categoriaMensalidade">
+                <option>Moradia</option>
+                <option>Internet</option>
+                <option>Telefone</option>
+                <option>Streaming</option>
+                <option>Educação</option>
+                <option>Transporte</option>
+                <option>Saúde</option>
+                <option>Outros</option>
+            </select>
+
+            <button type="submit" class="primary-btn full">
+                Salvar mensalidade
+            </button>
+
+        </form>
+
+    </div>
+</div>
+
+
+<!-- MODAL META -->
+<div id="modalMeta" class="modal">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h2>Nova meta financeira</h2>
+            <button onclick="fecharModal('modalMeta')">×</button>
+        </div>
+
+        <form id="formMeta">
+
+            <label>Nome da meta</label>
+            <input type="text" id="nomeMeta" placeholder="Ex: Comprar um carro" required>
+
+            <label>Valor objetivo</label>
+            <input type="number" id="valorObjetivo" step="0.01" min="1" required>
+
+            <label>Valor já guardado</label>
+            <input type="number" id="valorGuardado" step="0.01" min="0" value="0">
+
+            <button type="submit" class="primary-btn full">
+                Criar meta
+            </button>
+
+        </form>
+
+    </div>
+</div>
+
+
+<script src="app.js"></script>
+
+</body>
+</html>
