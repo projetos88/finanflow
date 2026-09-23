@@ -212,34 +212,33 @@
                 mensagem.className =
                     "auth-message success";
 
+const resposta =
+    await fetch(
+        "https://finanflow-production-9cf6.up.railway.app/api/login",
+        {
 
-                const resposta =
-                    await fetch(
-                     "http://localhost:3000/api/login",
-                        {
+            method: "POST",
 
-                            method: "POST",
+            credentials: "include",
 
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
+            headers: {
+                "Content-Type":
+                    "application/json"
+            },
 
-                            body:
-                                JSON.stringify({
+            body:
+                JSON.stringify({
 
-                                    email:
-                                        email,
+                    email:
+                        email,
 
-                                    senha:
-                                        senha
+                    senha:
+                        senha
 
-                                })
+                })
 
-                        }
-                    );
-
-
+        }
+    );
                 const resultado =
                     await resposta.json();
 

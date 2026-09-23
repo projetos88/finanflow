@@ -7,18 +7,87 @@
 // VERIFICAÇÃO DE LOGIN
 // ========================================
 
-const usuarioLogado =
-    JSON.parse(
-        localStorage.getItem("finanflow_usuario_logado")
-    );
+let usuarioLogado = null;
+let usuarioId = null;
 
 
-// Se não estiver logado,
-// volta para a tela de login.
+// Verifica a sessão diretamente no servidor
+async function verificarSessao() {
 
-if (!usuarioLogado) {
+    try {
 
-    window.location.href = "login.html";
+        const resposta =
+            await fetch(
+              "https://finanflow-production-9cf6.up.railway.app/api/me",
+                {
+                    credentials: "include"
+                }
+            );
+
+        if (!resposta.ok) {
+
+            localStorage.removeItem(
+                "finanflow_usuario_logado"
+            );
+
+            window.location.href =
+                "login.html";
+
+            return false;
+        }
+
+
+        const dados =
+            await resposta.json();
+
+
+        if (
+            !dados.sucesso ||
+            !dados.usuario
+        ) {
+
+            localStorage.removeItem(
+                "finanflow_usuario_logado"
+            );
+
+            window.location.href =
+                "login.html";
+
+            return false;
+        }
+
+
+        // Usuário confirmado pelo servidor
+        usuarioLogado =
+            dados.usuario;
+
+        usuarioId =
+            dados.usuario.id;
+
+
+        // Mantém os dados locais necessários
+        localStorage.setItem(
+            "finanflow_usuario_logado",
+            JSON.stringify(dados.usuario)
+        );
+
+
+        return true;
+
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao verificar sessão:",
+            erro
+        );
+
+        window.location.href =
+            "login.html";
+
+        return false;
+
+    }
 
 }
 
@@ -27,45 +96,29 @@ if (!usuarioLogado) {
 // IDENTIFICAÇÃO DO USUÁRIO
 // ========================================
 
-const usuarioId =
-    usuarioLogado ? usuarioLogado.id : null;
-
 
 // ========================================
 // CHAVES INDIVIDUAIS
 // ========================================
 
-const chaveTransacoes =
-    `finanflow_transacoes_${usuarioId}`;
+let chaveTransacoes =
+    null;
 
-const chaveMensalidades =
-    `finanflow_mensalidades_${usuarioId}`;
+let chaveMensalidades =
+    null;
 
-const chaveMetas =
-    `finanflow_metas_${usuarioId}`;
+
 
 
 // ========================================
 // CARREGAMENTO DOS DADOS
 // ========================================
 
-let transacoes =
-    JSON.parse(
-        localStorage.getItem(chaveTransacoes)
-    ) || [];
+let transacoes = [];
 
+let mensalidades = [];
 
-let mensalidades =
-    JSON.parse(
-        localStorage.getItem(chaveMensalidades)
-    ) || [];
-
-
-let metas =
-    JSON.parse(
-        localStorage.getItem(chaveMetas)
-    ) || [];
-
+let metas = [];
 
 let graficoFinanceiro = null;
 
@@ -78,7 +131,21 @@ let graficoCategorias = null;
 
 document.addEventListener(
     "DOMContentLoaded",
-    () => {
+    async () => {
+
+        // Primeiro confirma a sessão no servidor
+        const sessaoValida =
+            await verificarSessao();
+
+
+        // Se a sessão não for válida,
+        // verificarSessao() já manda para o login
+        if (!sessaoValida) {
+            return;
+        }
+
+
+        // Só continua depois de confirmar o usuário
 
         document.getElementById(
             "dataTransacao"
@@ -96,9 +163,11 @@ document.addEventListener(
 
         carregarTransacoesDoBanco();
 
+        carregarMetasDoBanco();
+        
+        await carregarMensalidadesDoBanco();
     }
 );
-
 
 // ========================================
 // MOSTRAR USUÁRIO
@@ -274,11 +343,13 @@ async function carregarTransacoesDoBanco() {
 
     try {
 
-        const resposta =
-            await fetch(
-                `http://localhost:3000/api/transacoes?usuarioId=${usuarioId}`
-            );
-
+    const resposta =
+    await fetch(
+        "https://finanflow-production-9cf6.up.railway.app/api/transacoes",
+        {
+            credentials: "include"
+        }
+    );
         const dados =
             await resposta.json();
 
@@ -327,13 +398,14 @@ async function excluirTransacao(id) {
 
     try {
 
-        const resposta =
-            await fetch(
-                `http://localhost:3000/api/transacoes/${id}?usuarioId=${usuarioId}`,
-                {
-                    method: "DELETE"
-                }
-            );
+    const resposta =
+    await fetch(
+        `https://finanflow-production-9cf6.up.railway.app/api/transacoes/${id}`,
+        {
+            method: "DELETE",
+            credentials: "include"
+        }
+    );
 
         const dados =
             await resposta.json();
@@ -432,34 +504,35 @@ async function salvarTransacao(event) {
     try {
 
         const resposta =
-            await fetch(
-                "http://localhost:3000/api/transacoes",
-                {
+    await fetch(
+        "https://finanflow-production-9cf6.up.railway.app/api/transacoes",
+        {
 
-                    method: "POST",
+            method: "POST",
 
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+            credentials: "include",
 
-                    body: JSON.stringify({
+            headers: {
+                "Content-Type": "application/json"
+            },
 
-                        usuarioId: usuarioId,
+            body: JSON.stringify({
 
-                        tipo: tipo,
+            
+                tipo: tipo,
 
-                        descricao: descricao,
+                descricao: descricao,
 
-                        valor: valor,
+                valor: valor,
 
-                        categoria: categoria,
+                categoria: categoria,
 
-                        data: data
+                data: data
 
-                    })
+            })
 
-                }
-            );
+        }
+    );
 
 
         const dados =
@@ -522,70 +595,6 @@ async function salvarTransacao(event) {
     }
 
 }
-
-app.delete("/api/transacoes/:id", (req, res) => {
-
-    console.log(
-        "DELETE RECEBIDO:",
-        req.params.id,
-        "USUARIO:",
-        req.query.usuarioId
-    );
-
-    try {
-
-        const id = Number(req.params.id);
-        const usuarioId = Number(req.query.usuarioId);
-
-        if (!id || !usuarioId) {
-
-            return res.status(400).json({
-                sucesso: false,
-                mensagem: "Dados inválidos."
-            });
-
-        }
-
-        const resultado = db.prepare(`
-            DELETE FROM transacoes
-            WHERE id = ?
-            AND usuario_id = ?
-        `).run(
-            id,
-            usuarioId
-        );
-
-        console.log("RESULTADO DO DELETE:", resultado);
-
-        if (resultado.changes === 0) {
-
-            return res.status(404).json({
-                sucesso: false,
-                mensagem: "Transação não encontrada."
-            });
-
-        }
-
-        return res.status(200).json({
-            sucesso: true,
-            mensagem: "Transação excluída com sucesso."
-        });
-
-    } catch (erro) {
-
-        console.error(
-            "Erro ao excluir transação:",
-            erro
-        );
-
-        return res.status(500).json({
-            sucesso: false,
-            mensagem: "Erro interno do servidor."
-        });
-
-    }
-
-});
 
 
 function renderizarTransacoes() {
@@ -811,7 +820,72 @@ function renderizarUltimasTransacoes() {
 // MENSALIDADES
 // ========================================
 
-function salvarMensalidade(event) {
+// ========================================
+// CARREGAR MENSALIDADES DO BANCO
+// ========================================
+
+async function carregarMensalidadesDoBanco() {
+
+    try {
+
+        const resposta =
+            await fetch(
+                "https://finanflow-production-9cf6.up.railway.app/api/mensalidades",
+                {
+                    method: "GET",
+                    credentials: "include"
+                }
+            );
+
+
+        const dados =
+            await resposta.json();
+
+
+        if (!resposta.ok) {
+
+            console.error(
+                "Erro ao carregar mensalidades:",
+                dados.mensagem
+            );
+
+            return;
+
+        }
+
+
+        mensalidades =
+            dados.mensalidades.map(
+                item => ({
+
+                    id: item.id,
+
+                    nome: item.nome,
+
+                    valor: Number(item.valor),
+
+                    dia: Number(item.dia),
+
+                    categoria: item.categoria,
+
+                    paga: Boolean(item.paga)
+
+                })
+            );
+
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao carregar mensalidades:",
+            erro
+        );
+
+    }
+
+}
+
+async function salvarMensalidade(event) {
 
     event.preventDefault();
 
@@ -848,7 +922,8 @@ function salvarMensalidade(event) {
         !nome ||
         valor <= 0 ||
         dia < 1 ||
-        dia > 31
+        dia > 31 ||
+        !categoria
     ) {
 
         alert(
@@ -860,39 +935,82 @@ function salvarMensalidade(event) {
     }
 
 
-    mensalidades.push({
+    try {
 
-        id: Date.now(),
+        const resposta =
+            await fetch(
+                "https://finanflow-production-9cf6.up.railway.app/api/mensalidades",
+                {
+                    method: "POST",
 
-        nome,
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
 
-        valor,
+                    credentials: "include",
 
-        dia,
+                    body: JSON.stringify({
 
-        categoria,
+                        nome,
 
-        paga: false
+                        valor,
 
-    });
+                        dia,
 
+                        categoria
 
-    salvarDados();
-
-
-    document
-        .getElementById(
-            "formMensalidade"
-        )
-        .reset();
-
-
-    fecharModal(
-        "modalMensalidade"
-    );
+                    })
+                }
+            );
 
 
-    atualizarTudo();
+        const dados =
+            await resposta.json();
+
+
+        if (!resposta.ok) {
+
+            alert(
+                dados.mensagem ||
+                "Erro ao salvar mensalidade."
+            );
+
+            return;
+
+        }
+
+
+        document
+            .getElementById(
+                "formMensalidade"
+            )
+            .reset();
+
+
+        fecharModal(
+            "modalMensalidade"
+        );
+
+
+        await carregarMensalidadesDoBanco();
+
+
+        atualizarTudo();
+
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao salvar mensalidade:",
+            erro
+        );
+
+        alert(
+            "Não foi possível salvar a mensalidade."
+        );
+
+    }
 
 }
 
@@ -1198,51 +1316,36 @@ function atualizarResumoMensalidades() {
 // METAS
 // ========================================
 
-function salvarMeta(event) {
+async function salvarMeta(event) {
 
     event.preventDefault();
 
-
-    if (
-        !usuarioPremium() &&
-        metas.length >= 3
-    ) {
+    if (!usuarioPremium() && metas.length >= 3) {
 
         alert(
             "O plano gratuito permite até 3 metas. Faça upgrade para o Premium para criar metas ilimitadas."
         );
 
-        window.location.href =
-            "planos.html";
+        window.location.href = "planos.html";
 
         return;
-
     }
 
-
     const nome =
-        document.getElementById(
-            "nomeMeta"
-        ).value.trim();
-
-    
-
+        document
+            .getElementById("nomeMeta")
+            .value
+            .trim();
 
     const objetivo =
         Number(
-            document.getElementById(
-                "valorObjetivo"
-            ).value
+            document.getElementById("valorObjetivo").value
         );
-
 
     const guardado =
         Number(
-            document.getElementById(
-                "valorGuardado"
-            ).value
+            document.getElementById("valorGuardado").value
         );
-
 
     if (
         !nome ||
@@ -1255,44 +1358,69 @@ function salvarMeta(event) {
         );
 
         return;
-
     }
 
+    try {
 
-    metas.push({
+        const resposta =
+            await fetch(
+                "https://finanflow-production-9cf6.up.railway.app/api/metas",
+                {
+                    method: "POST",
 
-        id: Date.now(),
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
 
-        nome,
+                    credentials: "include",
 
-        objetivo,
+                    body: JSON.stringify({
+                        nome,
+                        objetivo,
+                        guardado
+                    })
+                }
+            );
 
-        guardado
+        const dados =
+            await resposta.json();
 
-    });
+        if (!resposta.ok || !dados.sucesso) {
 
+            alert(
+                dados.mensagem ||
+                "Erro ao salvar meta."
+            );
 
-    salvarDados();
+            return;
+        }
 
+        document
+            .getElementById("formMeta")
+            .reset();
 
-    document
-        .getElementById(
-            "formMeta"
-        )
-        .reset();
+        fecharModal("modalMeta");
 
+        await carregarMetasDoBanco();
 
-    fecharModal(
-        "modalMeta"
-    );
+        atualizarTudo();
 
+    } catch (erro) {
 
-    atualizarTudo();
+        console.error(
+            "Erro ao salvar meta:",
+            erro
+        );
 
+        alert(
+            "Não foi possível salvar a meta."
+        );
+    }
 }
 
 
-function excluirMeta(id) {
+async function excluirMeta(id) {
 
     if (
         !confirm(
@@ -1305,18 +1433,50 @@ function excluirMeta(id) {
     }
 
 
-    metas =
-        metas.filter(
-            item => item.id !== id
+    try {
+const resposta =
+    await fetch(
+        `https://finanflow-production-9cf6.up.railway.app/api/metas/${id}`,
+        {
+            method: "DELETE",
+            credentials: "include"
+        }
+    );
+        const dados =
+            await resposta.json();
+
+
+        if (!resposta.ok) {
+
+            alert(
+                dados.erro ||
+                "Erro ao excluir a meta."
+            );
+
+            return;
+
+        }
+
+
+        await carregarMetasDoBanco();
+
+        atualizarTudo();
+
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao excluir meta:",
+            erro
         );
 
+        alert(
+            "Erro de conexão com o servidor."
+        );
 
-    salvarDados();
+    }
 
-    atualizarTudo();
-
-}
-
+}       
 
 function renderizarMetas() {
 
@@ -1435,6 +1595,35 @@ function renderizarMetas() {
             `;
 
         }).join("");
+
+}
+
+async function carregarMetasDoBanco() {
+
+    try {
+
+        const resposta = await fetch(
+            `https://finanflow-production-9cf6.up.railway.app/api/metas?usuarioId=${usuarioId}`
+        );
+
+        if (!resposta.ok) {
+            throw new Error("Erro ao carregar metas");
+        }
+
+        const dados = await resposta.json();
+
+       metas = dados.metas || [];
+
+        renderizarMetas();
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao carregar metas do banco:",
+            erro
+        );
+
+    }
 
 }
 
@@ -1789,12 +1978,7 @@ function salvarDados() {
     );
 
 
-    localStorage.setItem(
-        chaveMetas,
-        JSON.stringify(
-            metas
-        )
-    );
+   
 
 }
 
@@ -1909,7 +2093,7 @@ function escapeHTML(texto) {
 // LOGOUT
 // ========================================
 
-function sairDaConta() {
+async function sairDaConta() {
 
     const confirmar =
         confirm(
@@ -1920,6 +2104,25 @@ function sairDaConta() {
         return;
     }
 
+    try {
+
+        await fetch(
+            "https://finanflow-production-9cf6.up.railway.app/api/logout",
+            {
+                method: "POST",
+                credentials: "include"
+            }
+        );
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao fazer logout:",
+            erro
+        );
+
+    }
+
     localStorage.removeItem(
         "finanflow_usuario_logado"
     );
@@ -1927,8 +2130,6 @@ function sairDaConta() {
     window.location.href =
         "login.html";
 }
-
-
 // ========================================
 // ASSINATURA
 // ========================================
